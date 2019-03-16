@@ -1,30 +1,38 @@
 package matrix;
+import java.lang.reflect.Array;
 import java.util.*;
 
 
-public class Matrix <E> implements Iterable{
+public class Matrix <E extends  Number> implements Iterable{
 
 
-    private List <List<E>> matrix;
-
-    public Matrix(int sizeX, int sizeY){
-        if (sizeX<1 || sizeY<1) {
+    private List <List<Number>> matrix;
+    private int lengthX;
+    private int lengthY;
+    private Matrix(int lengthX, int lengthY){
+        if (lengthX<1 || lengthY<1) {
             throw new ArraySizeLowerThanOneException();
         }
-
-        matrix = new ArrayList<>(sizeX);
-        for (List list: matrix){
-            list = new ArrayList<>(sizeY);
+        matrix = new ArrayList<>();
+        for (int i=0; i<lengthX; i++){
+            matrix.add(new ArrayList<>(lengthY));
+            for (int j=0; j<lengthY; j++){
+                matrix.get(i).add(null);
+            }
         }
     }
-    public Matrix(E [][] array){
-        matrix = new ArrayList<>();
-        if (array.length<1 || array[0].length<1)
-            new ArraySizeLowerThanOneException().printStackTrace();
 
-        int ySize=array[0].length;
+    public Matrix(Number [][] array){
+
+        this.lengthX = array.length;
+        if (array.length<1 || array[0].length<1) {
+            new ArraySizeLowerThanOneException().printStackTrace();
+        }
+        matrix = new ArrayList<>();
+        this.lengthY = array[0].length;
         for (int i=0; i<array.length; i++){
-            if (ySize != array[i].length){
+            matrix.add(new ArrayList<>());
+            if (this.lengthY != array[i].length){
                 throw new ArrayNotRectangularException();
             }
             for (int j=0; j<array[i].length; j++){
@@ -35,37 +43,55 @@ public class Matrix <E> implements Iterable{
     }
 
     @Override
-    public Iterator iterator() {
+    public Iterator <Number> iterator() {
         return new Itr();
     }
-    private class Itr implements Iterator<E>{
-        Iterator <Iterator <E>> outerIterator;
-        Iterator <E> innerIterator;
-        //int expectedModCount = modCount;
+    private class Itr implements Iterator <Number>{
+        Iterator  <List<Number>> outerIterator;
+        Iterator  <Number> innerIterator;
         @Override
         public boolean hasNext() {
-            return innerIterator.hasNext()||outerIterator.hasNext();
+            return innerIterator.hasNext() || outerIterator.hasNext();
         }
 
         @Override
-        public E next() {
+        public Number next() {
             if(!innerIterator.hasNext()){
-                innerIterator = outerIterator.next();
+                innerIterator =  outerIterator.next().iterator();
             }
+
             return innerIterator.next();
         }
+        Itr(){
+            outerIterator = matrix.iterator();
+            innerIterator =  outerIterator.next().iterator();
+        }
+
     }
     public void changeElement(int x, int y, E element){
         matrix.get(x).set(y, element);
     }
-    public E get(int x, int y){
-        return matrix.get(x).get(y);
-    }
-    public void add(Matrix anotherMatrix){
-        Iterator outerIterator = matrix.iterator();
-        System.out.println("hi");
-        while(outerIterator.hasNext()){
-            System.out.println("hi");
+    public void print(){
+        for (List list : matrix){
+            System.out.println(list);
         }
+    }
+    private double add(E e1, E e2){
+        return e1.doubleValue();
+    }
+    public Matrix add(Matrix anotherMatrix){
+        if (this.lengthX!= anotherMatrix.lengthX || this.lengthY!= anotherMatrix.lengthY){
+            throw new DifferentSizesException(this.lengthX, this.lengthY, anotherMatrix.lengthX, anotherMatrix.lengthY);
+        }
+
+        Matrix returnedMatrix = new Matrix(this.lengthX, this.lengthY);
+        Iterator <Number> iteratorThis = this.iterator();
+        Iterator <Number> iteratorAnotherMatrix = anotherMatrix.iterator();
+        for (int i=0; i<this.lengthX; i++){
+            for (int j=0; j<this.lengthY; j++){
+                returnedMatrix.changeElement(i, j, iteratorThis.next().doubleValue()+ iteratorAnotherMatrix.next().doubleValue());
+            }
+        }
+        return returnedMatrix;
     }
 }
