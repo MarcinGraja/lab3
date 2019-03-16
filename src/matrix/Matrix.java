@@ -39,16 +39,28 @@ public class Matrix <E> implements Iterable{
         return new Itr();
     }
     private class Itr implements Iterator<E>{
-        int cursor;       // index of next element to return
-        int lastRet = -1; // index of last element returned; -1 if no such
+        Iterator <Iterator <E>> outerIterator;
+        Iterator <E> innerIterator;
         //int expectedModCount = modCount;
         @Override
         public boolean hasNext() {
-            return cursor!=matrix.size()*matrix.get(0).size();
+            return innerIterator.hasNext()||outerIterator.hasNext();
         }
 
         @Override
         public E next() {
+            if(innerIterator.hasNext()){
+                return innerIterator.next();
+            }
+            else if(outerIterator.hasNext()){
+                innerIterator = outerIterator.next();
+                if (innerIterator.hasNext()){
+                    return innerIterator.next();
+                }
+                else{
+                    System.out.println("znowu w życiu mi nie wyszło");
+                }
+            }
             return null;
         }
     }
