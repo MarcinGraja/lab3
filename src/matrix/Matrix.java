@@ -49,19 +49,10 @@ public class Matrix <E> implements Iterable{
 
         @Override
         public E next() {
-            if(innerIterator.hasNext()){
-                return innerIterator.next();
-            }
-            else if(outerIterator.hasNext()){
+            if(!innerIterator.hasNext()){
                 innerIterator = outerIterator.next();
-                if (innerIterator.hasNext()){
-                    return innerIterator.next();
-                }
-                else{
-                    System.out.println("znowu w życiu mi nie wyszło");
-                }
             }
-            return null;
+            return innerIterator.next();
         }
     }
     public void changeElement(int x, int y, E element){
