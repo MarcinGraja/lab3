@@ -35,7 +35,6 @@ public class Solution {
                     count++;
                 }
                 if (array[lower]+array[upper] == target){
-                    System.out.println("steps: " + count + "amount of elements in the array: " + array.length);
                     return new int[]{lower,upper};
                 }
             }

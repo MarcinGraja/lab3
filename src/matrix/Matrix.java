@@ -1,12 +1,14 @@
 package matrix;
 import java.lang.reflect.Array;
+import java.math.BigDecimal;
+import java.math.BigInteger;
 import java.util.*;
 
 
-public class Matrix <E extends  Number> implements Iterable{
+public class Matrix <E> implements Iterable{
 
 
-    private List <List<Number>> matrix;
+    private List <List<E>> matrix;
     private int lengthX;
     private int lengthY;
     private Matrix(int lengthX, int lengthY){
@@ -22,7 +24,7 @@ public class Matrix <E extends  Number> implements Iterable{
         }
     }
 
-    public Matrix(Number [][] array){
+    public Matrix(E [][] array){
 
         this.lengthX = array.length;
         if (array.length<1 || array[0].length<1) {
@@ -43,19 +45,19 @@ public class Matrix <E extends  Number> implements Iterable{
     }
 
     @Override
-    public Iterator <Number> iterator() {
+    public Iterator <E> iterator() {
         return new Itr();
     }
-    private class Itr implements Iterator <Number>{
-        Iterator  <List<Number>> outerIterator;
-        Iterator  <Number> innerIterator;
+    private class Itr implements Iterator <E>{
+        Iterator  <List<E>> outerIterator;
+        Iterator  <E> innerIterator;
         @Override
         public boolean hasNext() {
             return innerIterator.hasNext() || outerIterator.hasNext();
         }
 
         @Override
-        public Number next() {
+        public E next() {
             if(!innerIterator.hasNext()){
                 innerIterator =  outerIterator.next().iterator();
             }
@@ -76,20 +78,36 @@ public class Matrix <E extends  Number> implements Iterable{
             System.out.println(list);
         }
     }
-    private double add(E e1, E e2){
-        return e1.doubleValue();
-    }
     public Matrix add(Matrix anotherMatrix){
         if (this.lengthX!= anotherMatrix.lengthX || this.lengthY!= anotherMatrix.lengthY){
             throw new DifferentSizesException(this.lengthX, this.lengthY, anotherMatrix.lengthX, anotherMatrix.lengthY);
         }
-
+        if (!this.iterator().next().getClass().equals(anotherMatrix.iterator().next().getClass())){ //mismatch of matrixes types
+            throw new ClassCastException();
+        }
         Matrix returnedMatrix = new Matrix(this.lengthX, this.lengthY);
-        Iterator <Number> iteratorThis = this.iterator();
-        Iterator <Number> iteratorAnotherMatrix = anotherMatrix.iterator();
+        Iterator <E> iteratorThis = this.iterator();
+        Iterator <E> iteratorAnotherMatrix = anotherMatrix.iterator();
         for (int i=0; i<this.lengthX; i++){
             for (int j=0; j<this.lengthY; j++){
-                returnedMatrix.changeElement(i, j, iteratorThis.next().doubleValue()+ iteratorAnotherMatrix.next().doubleValue());
+                if (this.matrix.get(0).get(0) instanceof BigDecimal){
+                    BigDecimal t1 = (BigDecimal) iteratorThis.next();
+                    t1=t1.add((BigDecimal) iteratorAnotherMatrix.next());
+                    returnedMatrix.changeElement(i, j,t1);
+                }
+                else if (this.matrix.get(0).get(0) instanceof BigInteger){
+                    BigInteger t1 = (BigInteger) iteratorThis.next();
+                    t1=t1.add((BigInteger) iteratorAnotherMatrix.next());
+                    returnedMatrix.changeElement(i, j,t1);
+                }
+                else if (this.iterator().next() instanceof  String){
+                    returnedMatrix.changeElement(i,j,(String)iteratorThis.next()+iteratorAnotherMatrix.next());
+                }
+                else if (this.iterator().next() instanceof  Number){
+                    returnedMatrix.changeElement(i,j, (Double) iteratorThis.next() + (Double) iteratorAnotherMatrix.next());
+                }
+                else throw new IllegalArgumentException("Adding only subclasses of Number and String is supported; you tried to add "
+                            + this.iterator().next().getClass());
             }
         }
         return returnedMatrix;
